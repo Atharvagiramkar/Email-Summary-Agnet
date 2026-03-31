@@ -1,0 +1,41 @@
+{
+  "project_info": {
+    "project_number": "251967093038",
+    "project_id": "email-summary-agent-cdc24",
+    "storage_bucket": "email-summary-agent-cdc24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:251967093038:android:5fc931266da8cd9e03e2bf",
+        "android_client_info": {
+          "package_name": "com.example.emailsummaryagent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7zQA3KyUnDW9yq-ZUzNCnzV9VVKwGogk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "251967093038-4hbf7nbqhkhfhpeaj7l0pbo7046h0ir8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "251967093038-u8l40ctse6a9b2ku073236gcuhf14g6t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.emailsummaryagent"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
