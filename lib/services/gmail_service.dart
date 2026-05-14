@@ -15,6 +15,7 @@ class GmailService {
     required UserPreferences preferences,
     required int maxResults,
   }) async {
+    // Build a Gmail search query that reflects the user's preferences.
     final q = _buildQuery(preferences);
     final uri = Uri.https(
       'gmail.googleapis.com',
@@ -33,6 +34,7 @@ class GmailService {
 
     final messages = <EmailMessage>[];
     for (final entry in rawMessages) {
+      // Fetch metadata for each message to avoid loading full bodies.
       final id = entry['id']?.toString();
       if (id == null || id.isEmpty) {
         continue;
@@ -96,6 +98,7 @@ class GmailService {
     required String subject,
     required String body,
   }) async {
+    // Gmail send endpoint expects a base64url-encoded raw message.
     final rawMessage = _buildRawMessage(to: to, subject: subject, body: body);
     final encodedRaw = base64UrlEncode(
       utf8.encode(rawMessage),

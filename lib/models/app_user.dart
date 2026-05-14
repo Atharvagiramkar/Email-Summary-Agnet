@@ -6,6 +6,7 @@ class AppUser {
     required this.photoUrl,
   });
 
+  // Immutable view of the signed-in user.
   final String uid;
   final String email;
   final String displayName;

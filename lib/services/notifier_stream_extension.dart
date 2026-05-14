@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 extension ValueNotifierAsStream<T> on ValueNotifier<T> {
+  // Emit the current value immediately, then forward subsequent updates.
   Stream<T> asStream() async* {
     yield value;
     yield* Stream<T>.multi((controller) {

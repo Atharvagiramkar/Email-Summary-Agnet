@@ -6,6 +6,7 @@ enum SummaryStyle { formal, casual, bullet }
 
 enum DeliveryMethod { inApp, inbox }
 
+// UI-friendly labels for preference pickers.
 extension SummaryTypeLabel on SummaryType {
   String get label => this == SummaryType.daily ? 'Daily' : 'Weekly';
 }

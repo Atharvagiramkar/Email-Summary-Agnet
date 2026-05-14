@@ -18,6 +18,7 @@ class AuthGate extends StatelessWidget {
       builder: (context, snapshot) {
         final user = snapshot.data;
         if (user == null) {
+          // No auth session yet; show sign-in.
           return LoginScreen(backend: backend);
         }
 
@@ -36,6 +37,7 @@ class AuthGate extends StatelessWidget {
             }
 
             if (!profile.preferencesSet) {
+              // Force preference setup on first login.
               return PreferencesScreen(
                 backend: backend,
                 profile: profile,

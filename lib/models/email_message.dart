@@ -8,6 +8,7 @@ class EmailMessage {
     required this.isStarred,
   });
 
+  // Gmail message snapshot used for summarization.
   final String id;
   final String subject;
   final String body;

@@ -1,5 +1,4 @@
 import 'package:emailsummaryagent/models/enums.dart';
-
 class UserPreferences {
   const UserPreferences({
     required this.summaryType,
@@ -9,6 +8,7 @@ class UserPreferences {
     required this.deliveryMethod,
   });
 
+  // User-configurable summary settings.
   final SummaryType summaryType;
   final EmailFilter emailFilter;
   final int numberOfEmails;
@@ -16,6 +16,7 @@ class UserPreferences {
   final DeliveryMethod deliveryMethod;
 
   factory UserPreferences.initial() {
+    // Sensible defaults for first-time setup.
     return const UserPreferences(
       summaryType: SummaryType.daily,
       emailFilter: EmailFilter.all,

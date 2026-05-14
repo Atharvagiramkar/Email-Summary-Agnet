@@ -37,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
+      // Switch between register and sign-in based on mode.
       if (_registerMode) {
         await widget.backend.registerWithEmail(
           _emailController.text.trim(),
@@ -67,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
+      // Google auth may also request Gmail scopes.
       await widget.backend.signInWithGoogle();
     } catch (error) {
       setState(() {

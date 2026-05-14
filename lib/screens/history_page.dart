@@ -35,6 +35,7 @@ class _HistoryPageState extends State<HistoryPage> {
         builder: (context, snapshot) {
           final all = snapshot.data ?? <SummaryItem>[];
           final query = _queryController.text.trim();
+          // Filter by formatted date text to keep search simple.
           final filtered = query.isEmpty
               ? all
               : all.where((item) {

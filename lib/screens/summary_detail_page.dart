@@ -27,6 +27,7 @@ class _SummaryDetailPageState extends State<SummaryDetailPage> {
   @override
   void initState() {
     super.initState();
+    // Keep local UI flags in sync with the current item state.
     _read = widget.summary.read;
     _isBookmarked = widget.summary.isBookmarked;
   }
@@ -50,6 +51,7 @@ class _SummaryDetailPageState extends State<SummaryDetailPage> {
   }
 
   Future<void> _deleteSummary() async {
+    // Confirm destructive action before deleting.
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

@@ -30,6 +30,7 @@ class AppRuntime {
   static bool get aiEnabled => geminiApiKey.isNotEmpty;
 
   static Future<void> initialize() async {
+    // Load env vars when available; missing .env is OK for non-local setups.
     try {
       await dotenv.load(fileName: '.env');
     } catch (_) {
@@ -39,6 +40,7 @@ class AppRuntime {
     const dartDefineGeminiKey = String.fromEnvironment('GEMINI_API_KEY');
     geminiApiKey = (dotenv.env['GEMINI_API_KEY'] ?? dartDefineGeminiKey).trim();
 
+    // Enable Firebase only when initialization succeeds.
     try {
       await Firebase.initializeApp();
       firebaseEnabled = true;

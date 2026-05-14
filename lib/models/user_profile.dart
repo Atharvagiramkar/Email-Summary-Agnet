@@ -11,6 +11,7 @@ class UserProfile {
     required this.lastSummarizedAt,
   });
 
+  // App-level profile stored in Firestore or local memory.
   final String uid;
   final String email;
   final String name;

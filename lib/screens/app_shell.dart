@@ -46,57 +46,68 @@ class _AppShellState extends State<AppShell> {
   }
 
   Future<void> _generateSummary() async {
-    // Collect all summarized email IDs to exclude them
-    final existingSummaries = await widget.backend.summaries(_profile.uid).first;
-    final summarizedIds = <String>{};
-    for (final summary in existingSummaries) {
-      summarizedIds.addAll(summary.emailIds);
-    }
+    try {
+      // Collect summarized email IDs to avoid re-summarizing.
+      final existingSummaries = await widget.backend.summaries(_profile.uid).first;
+      final summarizedIds = <String>{};
+      for (final summary in existingSummaries) {
+        summarizedIds.addAll(summary.emailIds);
+      }
 
-    // Check if there are any emails before generating summary
-    final inboxEmails = await widget.backend.fetchInboxEmails(_profile.preferences);
-    final emails = inboxEmails
-        .where((email) => !summarizedIds.contains(email.id))
-        .toList();
+        // Short-circuit when there are no new emails to summarize.
+      final inboxEmails = await widget.backend.fetchInboxEmails(_profile.preferences);
+      final emails = inboxEmails
+          .where((email) => !summarizedIds.contains(email.id))
+          .toList();
 
-    if (emails.isEmpty) {
+      if (emails.isEmpty) {
+        if (!mounted) return;
+
+        // Show different message based on summary type.
+        final isDaily = _profile.preferences.summaryType == SummaryType.daily;
+        final message = isDaily
+            ? 'No new email has arrived yet. You may wait or try again later.'
+            : 'There is no new email arrived in this week. Kindly check your email address or wait till a new email to arrive in your inbox, and retry again.';
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('No New Emails'),
+            content: Text(message),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      // Proceed with summary generation if emails exist
+      await widget.backend.generateSummaries(
+        profile: _profile,
+        preferences: _profile.preferences,
+      );
+      await _refreshProfile();
+      if (!mounted) {
+        return;
+      }
+      setState(() => _index = 1);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Summaries generated successfully.')),
+      );
+    } catch (e) {
       if (!mounted) return;
-
-      // Show different message based on summary type
-      final isDaily = _profile.preferences.summaryType == SummaryType.daily;
-      final message = isDaily
-          ? 'No new email has arrived yet. You may wait or try again later.'
-          : 'There is no new email arrived in this week. Kindly check your email address or wait till a new email to arrive in your inbox, and retry again.';
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('No New Emails'),
-          content: Text(message),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating summary: ${e.toString()}'),
+          backgroundColor: Colors.red,
         ),
       );
-      return;
     }
-
-    // Proceed with summary generation if emails exist
-    await widget.backend.generateSummaries(
-      profile: _profile,
-      preferences: _profile.preferences,
-    );
-    await _refreshProfile();
-    if (!mounted) {
-      return;
-    }
-    setState(() => _index = 1);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Summaries generated successfully.')),
-    );
   }
 
   Future<void> _openPreferences() async {

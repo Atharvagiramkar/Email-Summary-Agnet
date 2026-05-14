@@ -75,6 +75,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       return;
     }
 
+    // Initial setup replaces the stack to prevent going back.
     if (widget.isInitialSetup) {
       final destinationBuilder = widget.initialSetupDestinationBuilder;
       if (destinationBuilder == null) {

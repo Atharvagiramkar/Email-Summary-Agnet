@@ -22,6 +22,7 @@ class FirebaseAppBackend implements AppBackend {
   final GmailService _gmailService;
 
   static const List<String> _gmailScopes = <String>[
+    // Read and send permissions are required for summarization + delivery.
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/gmail.send',
   ];
@@ -211,15 +212,16 @@ class FirebaseAppBackend implements AppBackend {
   }
 
   @override
+  Future<List<EmailMessage>> fetchInboxEmails(UserPreferences preferences) {
+    return _collectEmailsFromGmailOrFallback(preferences);
+  }
+
+  @override
   Future<void> generateSummaries({
     required UserProfile profile,
     required UserPreferences preferences,
   }) async {
-    final summarizedIds = await _loadSummarizedEmailIds(profile.uid);
-    final inboxEmails = await fetchInboxEmails(preferences);
-    final emails = inboxEmails
-        .where((email) => !summarizedIds.contains(email.id))
-        .toList();
+    final emails = await _collectEmailsFromGmailOrFallback(preferences);
     final batches = chunkEmails(emails, preferences.numberOfEmails);
     final collection = _db
         .collection('users')
@@ -227,9 +229,8 @@ class FirebaseAppBackend implements AppBackend {
         .collection('summaries');
 
     for (var i = 0; i < batches.length; i++) {
-      final batchEmails = batches[i];
       final summary = await summarizeBatchWithAi(
-        emails: batchEmails,
+        emails: batches[i],
         style: preferences.summaryStyle,
         deliveryMethod: preferences.deliveryMethod,
       );
@@ -238,7 +239,6 @@ class FirebaseAppBackend implements AppBackend {
         'content': summary,
         'createdAt': DateTime.now().toIso8601String(),
         'read': false,
-        'emailIds': batchEmails.map((e) => e.id).toList(),
       });
 
       if (preferences.deliveryMethod == DeliveryMethod.inbox &&
@@ -258,11 +258,6 @@ class FirebaseAppBackend implements AppBackend {
     });
   }
 
-  @override
-  Future<List<EmailMessage>> fetchInboxEmails(UserPreferences preferences) {
-    return _collectEmailsFromGmail(preferences);
-  }
-
   Future<void> _ensureGmailAuthorization({required bool interactive}) async {
     final account = _googleAccount;
     if (account == null) {
@@ -273,6 +268,7 @@ class FirebaseAppBackend implements AppBackend {
         .authorizationClient
         .authorizationForScopes(_gmailScopes);
 
+    // Prompt the user only when interactive authorization is allowed.
     if (authorization == null && interactive) {
       authorization = await account.authorizationClient.authorizeScopes(
         _gmailScopes,
@@ -282,42 +278,29 @@ class FirebaseAppBackend implements AppBackend {
     _gmailAccessToken = authorization?.accessToken;
   }
 
-  Future<List<EmailMessage>> _collectEmailsFromGmail(
+  Future<List<EmailMessage>> _collectEmailsFromGmailOrFallback(
     UserPreferences preferences,
   ) async {
     await _ensureGmailAuthorization(interactive: false);
     final token = _gmailAccessToken;
     if (token == null || token.isEmpty) {
-      return <EmailMessage>[];
+      // Use local sample data when Gmail is unavailable.
+      return collectEmails(preferences);
     }
 
     try {
       final result = await _gmailService.listMessages(
         accessToken: token,
         preferences: preferences,
-        maxResults: 100,
+        maxResults: preferences.numberOfEmails * 4,
       );
       if (result.isEmpty) {
         return <EmailMessage>[];
       }
       return result;
     } catch (_) {
-      return <EmailMessage>[];
+      // Fallback keeps the app usable even if Gmail calls fail.
+      return collectEmails(preferences);
     }
-  }
-
-  Future<Set<String>> _loadSummarizedEmailIds(String uid) async {
-    final snapshot = await _db
-        .collection('users')
-        .doc(uid)
-        .collection('summaries')
-        .get();
-
-    final ids = <String>{};
-    for (final doc in snapshot.docs) {
-      final raw = doc.data()['emailIds'] as List<dynamic>? ?? <dynamic>[];
-      ids.addAll(raw.map((id) => id.toString()));
-    }
-    return ids;
   }
 }

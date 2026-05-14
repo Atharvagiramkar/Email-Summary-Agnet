@@ -43,6 +43,7 @@ class _SummaryPageState extends State<SummaryPage> {
                 ),
               ),
               if (items.isEmpty)
+                // Empty state when there are no summaries yet.
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16),

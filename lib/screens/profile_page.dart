@@ -2,8 +2,10 @@ import 'package:emailsummaryagent/models/enums.dart';
 import 'package:emailsummaryagent/models/summary_item.dart';
 import 'package:emailsummaryagent/models/user_profile.dart';
 import 'package:emailsummaryagent/screens/auth_gate.dart';
+import 'package:emailsummaryagent/screens/feedback_dialog.dart';
 import 'package:emailsummaryagent/screens/splash_screen.dart';
 import 'package:emailsummaryagent/services/app_backend.dart';
+import 'package:emailsummaryagent/services/feedback_service.dart';
 import 'package:emailsummaryagent/services/summary_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -28,12 +30,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late final TextEditingController _nameController;
+  late final FeedbackService _feedbackService;
   bool _updating = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.profile.name);
+    _feedbackService = FeedbackService();
   }
 
   @override
@@ -54,6 +58,21 @@ class _ProfilePageState extends State<ProfilePage> {
     if (mounted) {
       setState(() => _updating = false);
     }
+  }
+
+  void _openFeedbackDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => FeedbackDialog(
+        uid: widget.profile.uid,
+        userEmail: widget.profile.email,
+        userName: widget.profile.name,
+        feedbackService: _feedbackService,
+        onFeedbackSubmitted: () {
+          setState(() {});
+        },
+      ),
+    );
   }
 
   @override
@@ -199,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
             builder: (context, snapshot) {
               final allSummaries = snapshot.data ?? [];
 
-              // Count all emails since registration
+              // Demo uses locally generated emails for overall stats.
               final allEmails = collectEmailsSinceRegistration();
               int totalEmailCount = allEmails.length;
               int totalSummaryCount = allSummaries.length;
@@ -452,8 +471,99 @@ class _ProfilePageState extends State<ProfilePage> {
             },
           ),
           const SizedBox(height: 24),
+          // Communication & Feedback Section
+          Text(
+            'Communication',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF00D4AA).withOpacity(0.15),
+                  const Color(0xFF1E6BFF).withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFF00D4AA).withOpacity(0.3),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00D4AA).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.mail_outline,
+                          color: Color(0xFF00D4AA),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Share Your Feedback',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Have suggestions or found an issue?',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: const Color(0xFF6B7A99),
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _openFeedbackDialog,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF00D4AA),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.send_rounded, size: 18),
+                        SizedBox(width: 8),
+                        Text('Send Feedback'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           FilledButton.tonal(
             onPressed: () async {
+              // Sign out and reset navigation back to the auth flow.
               await widget.backend.signOut();
               if (!mounted) {
                 return;

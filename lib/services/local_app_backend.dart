@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 class LocalAppBackend implements AppBackend {
   const LocalAppBackend();
 
+  // In-memory stores for demo/local mode.
   static final ValueNotifier<AppUser?> _authState = ValueNotifier<AppUser?>(
     null,
   );
@@ -150,7 +151,7 @@ class LocalAppBackend implements AppBackend {
     required UserProfile profile,
     required UserPreferences preferences,
   }) async {
-    // Collect all summarized email IDs
+    // Collect summarized email IDs so we skip duplicates.
     final existingSummaries = _summaryStore[profile.uid] ?? <SummaryItem>[];
     final summarizedIds = <String>{};
     for (final summary in existingSummaries) {
@@ -184,6 +185,7 @@ class LocalAppBackend implements AppBackend {
       );
     }
 
+    // Prepend new summaries so latest appear first.
     final existing = _summaryStore[profile.uid] ?? <SummaryItem>[];
     _summaryStore[profile.uid] = <SummaryItem>[...generated, ...existing];
     _profiles[profile.uid] = profile.copyWith(lastSummarizedAt: now);

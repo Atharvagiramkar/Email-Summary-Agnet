@@ -26,22 +26,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Stream<int> _emailCountStream({
-    required UserPreferences preferences,
-  }) {
+  Stream<int> _emailCountStream({required UserPreferences preferences}) {
     return Stream<int>.multi((controller) {
       var active = true;
       Timer? midnightTimer;
 
+      // Poll the inbox and reset the count at midnight.
       Future<void> updateEmailCount() async {
         if (!active) return;
         try {
           final emails = await widget.backend.fetchInboxEmails(preferences);
           final now = DateTime.now();
-          
+
           // Get start of today (00:00:00)
           final today = DateTime(now.year, now.month, now.day);
-          
+
           // Get start of tomorrow (00:00:00)
           final tomorrow = today.add(const Duration(days: 1));
 
@@ -60,7 +59,7 @@ class _HomePageState extends State<HomePage> {
 
       Future<void> scheduleMidnightReset() async {
         midnightTimer?.cancel();
-        
+
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
         final midnight = today.add(const Duration(days: 1));
@@ -96,6 +95,7 @@ class _HomePageState extends State<HomePage> {
     SummaryType summaryType,
     DateTime now,
   ) {
+    // Match either today's emails or the last 7 days depending on preference.
     final day = DateTime(date.year, date.month, date.day);
     final today = DateTime(now.year, now.month, now.day);
 
@@ -118,10 +118,14 @@ class _HomePageState extends State<HomePage> {
         surfaceTintColor: Colors.white,
         title: Row(
           children: [
-             Center(
-                child: Image(image: AssetImage('assets/images/logo.png'), width:40, height: 40),
+            Center(
+              child: Image(
+                image: AssetImage('assets/images/logo.png'),
+                width: 40,
+                height: 40,
               ),
-            
+            ),
+
             const SizedBox(width: 12),
             Text(
               'Email Summary Agent',
@@ -498,7 +502,9 @@ class _HomePageState extends State<HomePage> {
                       final isDaily =
                           widget.profile.preferences.summaryType ==
                           SummaryType.daily;
-                      final emailLabel = isDaily ? 'Today\'s Emails' : 'Weekly Emails';
+                      final emailLabel = isDaily
+                          ? 'Today\'s Emails'
+                          : 'Weekly Emails';
 
                       final totalSummarizedCount = allSummaries
                           .where(
@@ -570,7 +576,9 @@ class _HomePageState extends State<HomePage> {
                 }).toList();
 
                 if (filteredSummaries.isEmpty) {
-                  final emptyMessage = widget.profile.preferences.summaryType == SummaryType.daily
+                  final emptyMessage =
+                      widget.profile.preferences.summaryType ==
+                          SummaryType.daily
                       ? 'No summaries for today'
                       : 'No summaries for this week';
                   return Card(

@@ -9,6 +9,7 @@ class SummaryItem {
     this.emailIds = const [],
   });
 
+  // Stored summary payload with associated email ids.
   final String id;
   final int batchIndex;
   final String content;

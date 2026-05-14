@@ -190,6 +190,7 @@ class MyApp extends StatelessWidget {
   }
 
   AppBackend _resolveBackend() {
+    // Prefer Firebase when available; fall back to local demo storage.
     if (AppRuntime.firebaseEnabled) {
       return FirebaseAppBackend();
     }

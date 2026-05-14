@@ -19,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+    // Simple logo animation before showing the main app.
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -34,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animationController.forward();
 
+    // Give the animation time to finish before swapping screens.
     Future<void>.delayed(const Duration(milliseconds: 1600), () {
       if (mounted) {
         setState(() => _ready = true);
